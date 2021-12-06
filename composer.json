@@ -1,0 +1,29 @@
+{
+	"name": "tarosky/external-permalink",
+	"description": "",
+	"minimum-stability": "stable",
+	"license": "GPL-3.0-or-later",
+	"scripts": {
+		"test": [
+			"phpcs --config-set installed_paths $(pwd)/vendor/wp-coding-standards/wpcs",
+			"phpcs --standard=phpcs.ruleset.xml $(find ./ -name '*.php')"
+		],
+		"fix": [
+			"phpcs --config-set installed_paths $(pwd)/vendor/wp-coding-standards/wpcs",
+			"phpcbf --standard=phpcs.ruleset.xml $(find ./ -name '*.php')"
+		]
+	},
+	"authors": [
+		{
+			"name": "TAROSKKY INC.",
+			"email": "info@tarosky.co.jp"
+		}
+	],
+	"require": {
+		"php": "^5.6|^7.0"
+	},
+	"require-dev": {
+		"squizlabs/php_codesniffer": "^3.0",
+		"wp-coding-standards/wpcs": "^2.0"
+	}
+}
