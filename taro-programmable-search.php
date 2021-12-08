@@ -30,6 +30,7 @@ function tps_init() {
 	require_once __DIR__ . '/includes/functions.php';
 	require_once __DIR__ . '/includes/settings.php';
 	require_once __DIR__ . '/includes/template.php';
+	require_once __DIR__ . '/includes/widget.php';
 }
 
 

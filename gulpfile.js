@@ -4,6 +4,7 @@ const $ = require( 'gulp-load-plugins' )();
 const webpack = require( 'webpack-stream' );
 const webpackBundle = require( 'webpack' );
 const named = require( 'vinyl-named' );
+const { dumpSetting } = require('@kunoichi/grab-deps');
 
 let plumber = true;
 
@@ -77,11 +78,24 @@ gulp.task( 'eslint', function () {
 } );
 
 // watch
-gulp.task( 'watch', function () {
+gulp.task( 'watch', function ( done ) {
 	// Make SASS
 	gulp.watch( 'assets/scss/**/*.scss', gulp.parallel( 'sass', 'stylelint' ) );
 	// Bundle JS
 	gulp.watch( [ 'assets/js/**/*.{js,jsx}' ], gulp.parallel( 'jsx', 'eslint' ) );
+	// Dump setting.
+	gulp.watch( [
+		'dist/js/**/*.js',
+		'dist/css/**/*.css',
+	], gulp.task( 'dump' ) );
+	done();
+
+} );
+
+// Dump dependencies.
+gulp.task( 'dump', ( done ) => {
+	dumpSetting( 'dist' );
+	done();
 } );
 
 // Toggle plumber.
@@ -91,7 +105,7 @@ gulp.task( 'noplumber', ( done ) => {
 } );
 
 // Build
-gulp.task( 'build', gulp.parallel( 'jsx', 'sass' ) );
+gulp.task( 'build', gulp.series( gulp.parallel( 'jsx', 'sass' ), 'dump' ) );
 
 // Default Tasks
 gulp.task( 'default', gulp.series( 'watch' ) );

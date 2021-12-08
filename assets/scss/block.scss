@@ -1,0 +1,50 @@
+/*!
+ * Block styles
+ *
+ * @handle tps-block
+ */
+
+.tps-search-block {
+	padding: 1em;
+	background-color: #f9f9f9;
+	border: 1px solid #eee;
+
+	&-legend {
+		margin: 0 0 1em;
+		font-weight: 700;
+	}
+
+	&-form {
+		margin: 1em 0;
+	}
+
+	&-input {
+		box-sizing: border-box;
+		width: 100%;
+	}
+
+	&-result {
+		background-color: #fff;
+	}
+
+	&-item {
+		border-bottom: 1px solid #eee;
+		padding: 1em;
+
+		&:last-child {
+			border-bottom: none;
+		}
+
+		&-title {
+			color: #06c;
+			font-weight: 700;
+			margin-bottom: 0.5em;
+			text-decoration: underline;
+		}
+
+		&-description {
+			color: #666;
+			font-size: 0.8em;
+		}
+	}
+}
