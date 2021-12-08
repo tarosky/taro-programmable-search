@@ -78,9 +78,9 @@ function tps_enqueue_google_search_script( $echo = true ) {
 	if ( ! tps_use_search_engine() || $did ) {
 		return '';
 	}
-	$did = true;
+	$did    = true;
 	$string = sprintf( '<script async src="https://cse.google.com/cse.js?cx=%s"></script>', esc_attr( tps_get_search_engine_id() ) );
-	if ( $echo  ) {
+	if ( $echo ) {
 		echo $string;
 	}
 	return $string;
@@ -118,14 +118,14 @@ function tps_search_form( $args = [], $print_script = true ) {
 	if ( $print_script ) {
 		$output .= tps_enqueue_google_search_script( false ) . "\n";
 	}
-	$args = wp_parse_args( $args, [
+	$args       = wp_parse_args( $args, [
 		'enableAutoComplete'      => true,
 		'data-queryParameterName' => 's',
 		'class'                   => 'gcse-searchbox',
 		'data-gname'              => 'tps-search',
 	] );
 	$result_url = get_permalink( $result_page );
-	$args = array_merge( [
+	$args       = array_merge( [
 		'data-resultsUrl' => $result_url,
 	], $args );
 	$attributes = [];
@@ -134,6 +134,6 @@ function tps_search_form( $args = [], $print_script = true ) {
 			$attributes[] = sprintf( '%s="%s"', esc_html( $key ), esc_attr( $value ) );
 		}
 	}
-	$output .= sprintf ( '<div %s></div>', implode( ' ', $attributes ) );
+	$output .= sprintf( '<div %s></div>', implode( ' ', $attributes ) );
 	return $output;
 }

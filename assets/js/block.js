@@ -64,7 +64,7 @@ registerBlockType( TpsSearchBlock.name, {
 					</p>
 					{ ( 0 <= [ 'both', 'form' ].indexOf( attributes.layout ) ) && (
 						<div className="tps-search-block-form">
-							<input type="text" className="tps-search-block-input" placeholder={ __( 'Input and search...', 'tps' ) } />
+							<input type="text" className="tps-search-block-input" placeholder={ __( 'Input and search…', 'tps' ) } />
 						</div>
 					) }
 					{ ( 0 <= [ 'both', 'result' ].indexOf( attributes.layout ) ) && (

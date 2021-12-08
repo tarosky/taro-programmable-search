@@ -99,9 +99,9 @@ add_action( 'init', function() {
 		'attributes' => $attr,
 	] );
 	register_block_type( $name, [
-		'editor_script' => 'tps-search-block',
-		'editor_style'  => 'tps-block',
-		'attributes'    => $attr,
+		'editor_script'   => 'tps-search-block',
+		'editor_style'    => 'tps-block',
+		'attributes'      => $attr,
 		'render_callback' => function( $attr = [], $content = '' ) {
 			$output = sprintf( '<div class="wp-block-google-search has-layout-%s">', esc_attr( $attr['layout'] ) );
 			if ( in_array( $attr['layout'], [ 'both', 'form' ], true ) ) {

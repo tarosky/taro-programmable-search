@@ -18,8 +18,13 @@ add_action( 'admin_init', function() {
 		?>
 		<p>
 			<input type="text" name="tps_search_engine_id" class="regular-text"
-				value="<?php echo esc_attr( get_option( 'tps_search_engine_id' ) ) ?>" /><br />
-			<span class="description"><?php echo wp_kses_post( sprintf( __( 'Create search engine <a href="%s">here</a>.', 'tps' ), esc_url( 'https://programmablesearchengine.google.com/' ) ) ); ?></span>
+				value="<?php echo esc_attr( get_option( 'tps_search_engine_id' ) ); ?>" /><br />
+			<span class="description">
+				<?php
+				// translators: %s is URL of console.
+				echo wp_kses_post( sprintf( __( 'Create search engine <a href="%s">here</a>.', 'tps' ), esc_url( 'https://programmablesearchengine.google.com/' ) ) );
+				?>
+			</span>
 		</p>
 		<?php
 	}, 'reading' );
@@ -28,7 +33,7 @@ add_action( 'admin_init', function() {
 
 	// Search page
 	add_settings_field( 'tps_search_result_page', __( 'Search Result Page', 'tps' ), function() {
-		$query = new \WP_Query( [
+		$query   = new \WP_Query( [
 			'post_type'      => 'page',
 			'post_status'    => 'any',
 			'posts_per_page' => 500,
@@ -36,7 +41,7 @@ add_action( 'admin_init', function() {
 		$current = get_option( 'tps_search_result_page' );
 		?>
 		<select name="tps_search_result_page">
-			<option value=""<?php selected( '', $current ) ?>><?php esc_html_e( 'Not Set', 'tps' ) ?></option>
+			<option value=""<?php selected( '', $current ); ?>><?php esc_html_e( 'Not Set', 'tps' ); ?></option>
 			<?php
 			if ( $query->have_posts() ) {
 				foreach ( $query->posts as $post ) {
@@ -53,6 +58,7 @@ add_action( 'admin_init', function() {
 		<p>
 			<?php
 			echo wp_kses_post( sprintf(
+				// translators: %s is shortcode.
 				__( 'Enter shortcode %s in the post content, or else whole content will be replaced with search result.', 'tps' ),
 				'<code>[tps_search_result]</code>'
 			) );

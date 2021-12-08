@@ -52,7 +52,7 @@ class Widget extends \WP_Widget {
 			esc_html__( 'Title', 'tps' ),
 			sprintf(
 				'<input type="text" name="%s" value="%s" placeholder="%s" />',
-				esc_attr__( $this->get_field_name( 'title' ) ),
+				esc_attr( $this->get_field_name( 'title' ) ),
 				esc_attr( $instance['title'] ),
 				esc_attr__( 'Search', 'tps' )
 			)
