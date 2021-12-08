@@ -89,14 +89,11 @@ jobs:
       - name: Build Plugin
         run: bash bin/build.sh ${{ github.ref }}
 
-      - name: Deploy to WordPress Directory
-        id: deploy
-        uses: 10up/action-wordpress-plugin-deploy@stable
-        with:
-          generate-zip: true
-        env:
-          SVN_USERNAME: ${{ secrets.WP_ORG_USERNAME_TAROSKY }}
-          SVN_PASSWORD: ${{ secrets.WP_ORG_PASSWORD_TAROSKY }}
+      - name: Clean Package
+        run: bash bin/clean.sh
+
+      - name: Create Zip
+        run: zip -r ${{ github.event.repository.name }}.zip ./
 
       - name: Create Release
         id: create_release
