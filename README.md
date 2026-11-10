@@ -31,10 +31,11 @@ You can change Search Engine's setting at [Google Programmable Search Engine Con
 `tps_search_result`
 
 Display search resutl if query has `s` parameter.
+Use it on the search results page set in "Settings > Reading" to choose where the results appear. If omitted, the results are appended to the end of the page. On other pages, use it together with `tps_search_form`.
 
 `tps_search_form`
 
-Display search form.
+Display search form. If the same page has no search results, the form leads to the search results page.
 
 ## Installation
 

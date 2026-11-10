@@ -60,7 +60,7 @@ registerBlockType( TpsSearchBlock.name, {
 				<div className="tps-search-block">
 					<p className="tps-search-block-legend">{ curLabel }</p>
 					<p className="description">
-						{ __( 'This is not what actually rendered, because Google Programmable Search Engine renders the search from via JavaScript and they are customizable via Console. Please check the appearance by preview.', 'tps' ) }
+						{ __( 'This is not what actually rendered, because Google Programmable Search Engine renders the search form via JavaScript and they are customizable via Console. Please check the appearance by preview.', 'tps' ) }
 					</p>
 					{ ( 0 <= [ 'both', 'form' ].indexOf( attributes.layout ) ) && (
 						<div className="tps-search-block-form">
