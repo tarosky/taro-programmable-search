@@ -1,6 +1,10 @@
 const gulp = require( 'gulp' );
 const fs = require( 'fs' );
-const $ = require( 'gulp-load-plugins' )();
+const $ = require( 'gulp-load-plugins' )( {
+	postRequireTransforms: {
+		sass: ( sass ) => sass( require( 'sass' ) ),
+	},
+} );
 const webpack = require( 'webpack-stream' );
 const webpackBundle = require( 'webpack' );
 const named = require( 'vinyl-named' );
