@@ -143,6 +143,111 @@ function tps_has_paired_search_result() {
 }
 
 /**
+ * Get taxonomies whose terms are output as meta tags.
+ *
+ * @return string[]
+ */
+function tps_get_meta_taxonomies() {
+	return array_values( array_filter( (array) get_option( 'tps_meta_taxonomies', [] ), 'taxonomy_exists' ) );
+}
+
+/**
+ * Get meta tags for the terms of a post.
+ *
+ * Google extracts meta tags into the "metatags" PageMap, so search results can be
+ * filtered with e.g. more:pagemap:metatags-tps-category:term12
+ *
+ * @param null|int|WP_Post $post Post object.
+ * @return array Meta name => content.
+ */
+function tps_get_term_meta( $post = null ) {
+	$post = get_post( $post );
+	$meta = [];
+	if ( ! $post ) {
+		return $meta;
+	}
+	foreach ( tps_get_meta_taxonomies() as $taxonomy ) {
+		$terms = get_the_terms( $post, $taxonomy );
+		if ( ! $terms || is_wp_error( $terms ) ) {
+			continue;
+		}
+		$meta[ tps_get_term_meta_name( $taxonomy ) ] = implode( ',', array_map( 'tps_get_term_filter_value', $terms ) );
+	}
+	return $meta;
+}
+
+/**
+ * Get the meta name for the terms of a taxonomy.
+ *
+ * @param string $taxonomy Taxonomy name.
+ * @return string
+ */
+function tps_get_term_meta_name( $taxonomy ) {
+	// Underscores are not documented as valid in meta names.
+	return 'tps-' . str_replace( '_', '-', $taxonomy );
+}
+
+/**
+ * Get the value to filter search results by a term.
+ *
+ * Term IDs are used because slugs can change.
+ *
+ * @param WP_Term $term Term object.
+ * @return string
+ */
+function tps_get_term_filter_value( $term ) {
+	return 'term' . $term->term_id;
+}
+
+/**
+ * Render a select box to filter search results by terms.
+ *
+ * @param string $taxonomy Taxonomy name. Must be one of the taxonomies output as meta tags.
+ * @param string $gname    data-gname of the search results to filter.
+ * @return string
+ */
+function tps_search_filter( $taxonomy, $gname ) {
+	if ( ! $taxonomy || ! in_array( $taxonomy, tps_get_meta_taxonomies(), true ) ) {
+		return '';
+	}
+	$terms = get_terms( [
+		'taxonomy'   => $taxonomy,
+		'hide_empty' => true,
+	] );
+	if ( ! $terms || is_wp_error( $terms ) ) {
+		return '';
+	}
+	tps_enqueue_search_filter_script();
+	$labels  = get_taxonomy( $taxonomy )->labels;
+	$options = sprintf( '<option value="">%s</option>', esc_html( $labels->all_items ) );
+	foreach ( $terms as $term ) {
+		$options .= sprintf( '<option value="%s">%s</option>', esc_attr( tps_get_term_filter_value( $term ) ), esc_html( $term->name ) );
+	}
+	return sprintf(
+		'<p class="tps-search-filter"><select class="tps-search-filter-select" data-gname="%s" data-meta="%s" aria-label="%s">%s</select></p>',
+		esc_attr( $gname ),
+		esc_attr( tps_get_term_meta_name( $taxonomy ) ),
+		esc_attr( $labels->name ),
+		$options
+	);
+}
+
+/**
+ * Enqueue the script to filter search results.
+ *
+ * The filter registers search callbacks, which Google's script only reads when it loads.
+ * So Google's script has to depend on it.
+ */
+function tps_enqueue_search_filter_script() {
+	tps_enqueue_google_search_script();
+	wp_enqueue_script( 'tps-search-filter' );
+	$google = wp_scripts()->query( 'tps-google-search' );
+	if ( $google && ! in_array( 'tps-search-filter', $google->deps, true ) ) {
+		$google->deps[] = 'tps-search-filter';
+	}
+}
+
+/**
  * Render print script.
  *
  * @param array $args         Settings.
