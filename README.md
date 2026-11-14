@@ -37,6 +37,12 @@ Use it on the search results page set in "Settings > Reading" to choose where th
 
 Display search form. If the same page has no search results, the form leads to the search results page.
 
+### Filtering Search Results
+
+Select taxonomies under "Taxonomies for Filtering" in "Settings > Reading". Their terms are added to each post as meta tags, e.g. `<meta name="tps-category" content="term3,term12" />`. Then set "Filter" on a Google Search block to let visitors narrow the results by term.
+
+Filtering works once Google has recrawled your pages, which can take a few days to weeks. You can speed this up in [Google Search Console](https://search.google.com/search-console) by resubmitting your sitemap or requesting indexing for important pages.
+
 ## Installation
 
 ### From Plugin Repository

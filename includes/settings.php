@@ -20,7 +20,7 @@ add_action( 'admin_init', function() {
 		function () {
 			printf(
 				'<p>%s</p>',
-				esc_html__( 'These settings are used by the Taro Programmable Search plugin.', 'tps' ),
+				esc_html__( 'These settings are used by the Taro Programmable Search plugin.', 'tps' )
 			);
 		},
 		'reading'
@@ -92,6 +92,43 @@ add_action( 'admin_init', function() {
 	);
 	// Register setting.
 	register_setting( 'reading', 'tps_search_result_page' );
+
+	// Taxonomies for filtering.
+	add_settings_field(
+		'tps_meta_taxonomies',
+		__( 'Taxonomies for Filtering', 'tps' ),
+		function() {
+			$current = tps_get_meta_taxonomies();
+			foreach ( get_taxonomies( [ 'public' => true ], 'objects' ) as $taxonomy ) {
+				printf(
+					'<label style="display: block;"><input type="checkbox" name="tps_meta_taxonomies[]" value="%s"%s /> %s <code>%s</code></label>',
+					esc_attr( $taxonomy->name ),
+					checked( in_array( $taxonomy->name, $current, true ), true, false ),
+					esc_html( $taxonomy->label ),
+					esc_html( $taxonomy->name )
+				);
+			}
+			?>
+			<p class="description">
+				<?php
+				echo wp_kses_post( sprintf(
+					// translators: %s is a search operator.
+					__( 'Terms of the checked taxonomies are output as meta tags of each post, so that search results can be filtered with e.g. %s. Google has to recrawl the posts before changes take effect.', 'tps' ),
+					'<code>more:pagemap:metatags-tps-category:term12</code>'
+				) );
+				?>
+			</p>
+			<?php
+		},
+		'reading',
+		'tps_section'
+	);
+	register_setting( 'reading', 'tps_meta_taxonomies', [
+		'type'              => 'array',
+		'sanitize_callback' => function( $value ) {
+			return array_values( array_filter( (array) $value, 'taxonomy_exists' ) );
+		},
+	] );
 } );
 
 /**

@@ -54,6 +54,18 @@ add_shortcode( 'tps_search_form', function( $atts = [], $content = '' ) {
 } );
 
 /**
+ * Output terms as meta tags for filtering search results.
+ */
+add_action( 'wp_head', function() {
+	if ( ! is_singular() ) {
+		return;
+	}
+	foreach ( tps_get_term_meta( get_queried_object() ) as $name => $content ) {
+		printf( '<meta name="%s" content="%s" />' . "\n", esc_attr( $name ), esc_attr( $content ) );
+	}
+} );
+
+/**
  * Register widget.
  */
 add_action( 'widgets_init', function() {
@@ -102,10 +114,20 @@ add_action( 'init', function() {
 			'required' => true,
 			'default'  => 'both',
 		],
+		'filter' => [
+			'type'    => 'string',
+			'default' => '',
+		],
 	];
 	wp_localize_script( 'tps-search-block', 'TpsSearchBlock', [
 		'name'       => $name,
 		'attributes' => $attr,
+		'taxonomies' => array_map( function( $taxonomy ) {
+			return [
+				'value' => $taxonomy,
+				'label' => get_taxonomy( $taxonomy )->labels->singular_name,
+			];
+		}, tps_get_meta_taxonomies() ),
 	] );
 	register_block_type( $name, [
 		'editor_script'   => 'tps-search-block',
@@ -117,6 +139,7 @@ add_action( 'init', function() {
 				// When layout is set to both, data-gname for both searchbox and searchresults need to match.
 				$gname   = wp_unique_id( 'tps-search-block-' );
 				$output .= tps_search_form( [ 'data-gname' => $gname ] );
+				$output .= tps_search_filter( $attr['filter'], $gname );
 				$output .= tps_get_search_result_script( [ 'data-gname' => $gname ] );
 			} elseif ( 'form' === $attr['layout'] ) {
 				// Without results on the same page, Google requires the standalone search box.
@@ -125,7 +148,12 @@ add_action( 'init', function() {
 					'class'      => 'gcse-searchbox-only',
 				] );
 			} elseif ( 'result' === $attr['layout'] ) {
-				$output .= tps_get_search_result_script( [ 'standalone' => true ] );
+				$gname   = wp_unique_id( 'tps-search-results-' );
+				$output .= tps_search_filter( $attr['filter'], $gname );
+				$output .= tps_get_search_result_script( [
+					'standalone' => true,
+					'data-gname' => $gname,
+				] );
 			}
 			$output .= '</div>';
 			return $output;

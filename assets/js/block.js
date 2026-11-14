@@ -47,6 +47,17 @@ registerBlockType( TpsSearchBlock.name, {
 				curLabel = option.label;
 			}
 		} );
+		const hasResult = ( 0 <= [ 'both', 'result' ].indexOf( attributes.layout ) );
+		const filterOptions = [ {
+			value: '',
+			label: __( 'No Filter', 'tps' ),
+		} ].concat( TpsSearchBlock.taxonomies );
+		let filterLabel = '';
+		TpsSearchBlock.taxonomies.forEach( ( taxonomy ) => {
+			if ( taxonomy.value === attributes.filter ) {
+				filterLabel = taxonomy.label;
+			}
+		} );
 		return (
 			<>
 				<InspectorControls>
@@ -54,6 +65,13 @@ registerBlockType( TpsSearchBlock.name, {
 						<SelectControl label={ __( 'Layout', 'tps' ) } value={ attributes.layout } options={ options } onChange={ ( layout ) => {
 							setAttributes( { layout } );
 						} } />
+						{ hasResult && (
+							<SelectControl label={ __( 'Filter', 'tps' ) } value={ attributes.filter } options={ filterOptions }
+								help={ __( 'Lets visitors filter the results by terms. Available taxonomies are set in Settings > Reading.', 'tps' ) }
+								onChange={ ( filter ) => {
+									setAttributes( { filter } );
+								} } />
+						) }
 					</PanelBody>
 				</InspectorControls>
 
@@ -67,7 +85,14 @@ registerBlockType( TpsSearchBlock.name, {
 							<input type="text" className="tps-search-block-input" placeholder={ __( 'Input and search…', 'tps' ) } />
 						</div>
 					) }
-					{ ( 0 <= [ 'both', 'result' ].indexOf( attributes.layout ) ) && (
+					{ ( hasResult && filterLabel ) && (
+						<div className="tps-search-block-filter">
+							<select className="tps-search-block-input" disabled>
+								<option>{ filterLabel }</option>
+							</select>
+						</div>
+					) }
+					{ hasResult && (
 						<div className="tps-search-block-result">
 							{ [ __( '1st Result', 'tps' ), __( '2nd Result', 'tps' ), __( '3rd Result', 'tps' ) ].map( ( result, index ) => {
 								return (
