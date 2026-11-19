@@ -70,36 +70,76 @@ function tps_use_search_engine() {
 /**
  * Enqueue JavaScript for google search.
  *
- * @param bool $echo If false, only return string.
- * @return string
+ * The script is enqueued in the footer, because the content may be rendered more than once
+ * (e.g. SEO plugins generating a description) and the output of such renders is discarded.
+ *
+ * @param bool $echo Deprecated. The script is always enqueued.
+ * @return string Always empty, kept for backward compatibility.
  */
 function tps_enqueue_google_search_script( $echo = true ) {
-	static $did = false;
-	if ( ! tps_use_search_engine() || $did ) {
+	if ( ! tps_use_search_engine() ) {
 		return '';
 	}
-	$did    = true;
-	$string = sprintf( '<script async src="https://cse.google.com/cse.js?cx=%s"></script>', esc_attr( tps_get_search_engine_id() ) );
-	if ( $echo ) {
-		echo $string;
-	}
-	return $string;
+	wp_enqueue_script( 'tps-google-search', 'https://cse.google.com/cse.js?cx=' . rawurlencode( tps_get_search_engine_id() ), [], null, [
+		'in_footer' => true,
+		'strategy'  => 'async',
+	] );
+	return '';
 }
 
 /**
  * Render search results.
  *
- * @param array $attr         Attributes(not used currently)
+ * @param array $attr         Attributes. 'standalone' renders results without a search box on the same page,
+ *                            'data-gname' pairs the results with the search box of the same name.
  * @param bool  $print_script Print script.
  * @return string
  */
 function tps_get_search_result_script( $attr = [], $print_script = true ) {
 	$output = '';
 	if ( $print_script ) {
-		$output .= tps_enqueue_google_search_script( false ) . "\n";
+		tps_enqueue_google_search_script( false );
 	}
-	$output .= '<div class="gcse-searchresults" data-gname="tps-search" data-linkTarget="_self"></div>';
+	$attr = wp_parse_args( $attr, [
+		'standalone' => false,
+		'data-gname' => '',
+	] );
+	if ( $attr['standalone'] ) {
+		// Standalone results read the query from the URL.
+		$gname   = $attr['data-gname'] ?: wp_unique_id( 'tps-search-results-' );
+		$output .= sprintf( '<div class="gcse-searchresults-only" data-gname="%s" data-queryParameterName="s" data-linkTarget="_self"></div>', esc_attr( $gname ) );
+	} else {
+		$gname   = $attr['data-gname'] ?: 'tps-search';
+		$output .= sprintf( '<div class="gcse-searchresults" data-gname="%s" data-linkTarget="_self"></div>', esc_attr( $gname ) );
+	}
 	return $output;
+}
+
+/**
+ * Detect if the current post has a search form shortcode to pair the search results with.
+ *
+ * @return bool
+ */
+function tps_has_paired_search_form() {
+	$post = get_post();
+	return $post && has_shortcode( $post->post_content, 'tps_search_form' );
+}
+
+/**
+ * Detect if the current post has search results to pair the search form with.
+ *
+ * @return bool
+ */
+function tps_has_paired_search_result() {
+	$post = get_post();
+	if ( ! $post ) {
+		return false;
+	}
+	if ( has_shortcode( $post->post_content, 'tps_search_result' ) ) {
+		return true;
+	}
+	// Results are appended to the result page if it has no block.
+	return tps_use_search_engine() && tps_get_search_engine_page() === $post->ID && ! has_block( 'tarosky/google-search', $post );
 }
 
 /**
@@ -116,7 +156,7 @@ function tps_search_form( $args = [], $print_script = true ) {
 	}
 	$output = '';
 	if ( $print_script ) {
-		$output .= tps_enqueue_google_search_script( false ) . "\n";
+		tps_enqueue_google_search_script( false );
 	}
 	$args       = wp_parse_args( $args, [
 		'enableAutoComplete'      => true,

@@ -4,62 +4,61 @@ on:
   push:
     branches:
       - main
-    tags:
-      - '*'
   pull_request:
     branches:
       - main
 
 jobs:
-  test:
-    runs-on: ${{ matrix.operating-system }}
-    strategy:
-      matrix:
-        operating-system: [ ubuntu-18.04 ]  # OS. ubuntu-18.04 is also available.
-        php: [ '5.6', '7.2', '7.4' ] # PHP versions to check.
-        wp: [ 'latest', '5.4' ]      # WordPress version to check.
-    services:
-      mysql:
-        image: mysql:5.7
-        options: --health-cmd "mysqladmin ping --host 127.0.0.1 --port 3306" --health-interval 20s --health-timeout 10s --health-retries 10
-        ports:
-          - 3306/tcp
-        env:
-          MYSQL_ROOT_PASSWORD: root
-    name: WordPress ${{ matrix.wp }} in PHP ${{ matrix.php }} UnitTest
+  phpcs:
+    name: PHP Coding Standards
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v4
 
       - name: Setup PHP
-        uses: nanasess/setup-php@master
+        uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php }}
+          php-version: '8.3'
+          tools: composer
 
-      - name: Validate composer.json and composer.lock
+      - name: Validate composer.json
         run: composer validate
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-progress --no-suggest
+        run: composer install --prefer-dist --no-progress
 
-      - name: Start MySQL
-        run: sudo systemctl start mysql
+      - name: Run PHPCS
+        run: composer test
 
-      - name: Install WordPress
-        run: bash bin/install-wp-tests.sh wordpress root root 127.0.0.1:3306 ${{ matrix.wp }}
+  php-lint:
+    name: PHP ${{ matrix.php }} Syntax Check
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '5.6', '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ] # Keep the lowest in sync with "Requires PHP".
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: none
 
       - name: Check PHP syntax
-        run: composer test
+        run: find . -name '*.php' -not -path './vendor/*' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l
 
   assets:
     name: Assets Test
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v4
 
       - name: Install Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
-          node-version: '12'
+          node-version-file: '.node-version'
 
       - name: Install NPM Packages
         run: npm install
@@ -67,51 +66,5 @@ jobs:
       - name: Check JS & CSS syntax
         run: npm run lint
 
-  release:
-    name: Deploy WordPress.org
-    needs: [ test, assets ]
-    if: contains(github.ref, 'tags/')
-    runs-on: ubuntu-18.04
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup PHP
-        uses: nanasess/setup-php@master
-        with:
-          php-version: 5.6
-
-      - name: Install Node
-        uses: actions/setup-node@v1
-        with:
-          node-version: '12'
-
-      - name: Build Plugin
-        run: bash bin/build.sh ${{ github.ref }}
-
-      - name: Clean Package
-        run: bash bin/clean.sh
-
-      - name: Create Zip
-        run: zip -r ${{ github.event.repository.name }}.zip ./
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-
-      - name: Upload release asset
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/${{ github.event.repository.name }}.zip
-          asset_name: ${{ github.event.repository.name }}.zip
-          asset_content_type: application/zip
+      - name: Build assets
+        run: npm run package

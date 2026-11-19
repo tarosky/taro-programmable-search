@@ -30,7 +30,9 @@ add_filter( 'the_content', function( $content ) {
  * @return string
  */
 add_shortcode( 'tps_search_result', function( $atts = [], $content = '' ) {
-	return tps_get_search_result_script();
+	return tps_get_search_result_script( [
+		'standalone' => ! tps_has_paired_search_form(),
+	] );
 }  );
 
 /**
@@ -41,6 +43,13 @@ add_shortcode( 'tps_search_result', function( $atts = [], $content = '' ) {
  * @return string
  */
 add_shortcode( 'tps_search_form', function( $atts = [], $content = '' ) {
+	$atts = is_array( $atts ) ? $atts : [];
+	// Without results on the same page, Google requires the standalone search box.
+	// Explicitly set class or data-gname are respected.
+	if ( ! isset( $atts['class'] ) && ! isset( $atts['data-gname'] ) && ! tps_has_paired_search_result() ) {
+		$atts['class']      = 'gcse-searchbox-only';
+		$atts['data-gname'] = wp_unique_id( 'tps-search-form-' );
+	}
 	return tps_search_form( $atts, true );
 } );
 
@@ -104,11 +113,19 @@ add_action( 'init', function() {
 		'attributes'      => $attr,
 		'render_callback' => function( $attr = [], $content = '' ) {
 			$output = sprintf( '<div class="wp-block-google-search has-layout-%s">', esc_attr( $attr['layout'] ) );
-			if ( in_array( $attr['layout'], [ 'both', 'form' ], true ) ) {
-				$output .= tps_search_form();
-			}
-			if ( in_array( $attr['layout'], [ 'both', 'result' ], true ) ) {
-				$output .= tps_get_search_result_script();
+			if ( 'both' === $attr['layout'] ) {
+				// When layout is set to both, data-gname for both searchbox and searchresults need to match.
+				$gname   = wp_unique_id( 'tps-search-block-' );
+				$output .= tps_search_form( [ 'data-gname' => $gname ] );
+				$output .= tps_get_search_result_script( [ 'data-gname' => $gname ] );
+			} elseif ( 'form' === $attr['layout'] ) {
+				// Without results on the same page, Google requires the standalone search box.
+				$output .= tps_search_form( [
+					'data-gname' => wp_unique_id( 'tps-search-block-' ),
+					'class'      => 'gcse-searchbox-only',
+				] );
+			} elseif ( 'result' === $attr['layout'] ) {
+				$output .= tps_get_search_result_script( [ 'standalone' => true ] );
 			}
 			$output .= '</div>';
 			return $output;
